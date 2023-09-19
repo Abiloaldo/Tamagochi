@@ -1,5 +1,8 @@
 import React, {useState} from 'react';
 import {TextInput, SafeAreaView, StyleSheet, Text, Button, View, Alert, Pressable} from 'react-native';
+//import CadastroUsuario from './CadastroUsuario';
+import axios from 'axios';
+import Home from './Home';
 
 const styles = StyleSheet.create({
   input: {
@@ -47,11 +50,15 @@ const styles = StyleSheet.create({
     marginTop: 100,
     borderRadius: 4,
   },
+  containerText: {
+    fontWeight: 'bold',
+  },
 });
 
 const Login = ({navigation}: any) => {
   const [password, setPassword] = useState<string>();
   const [text, setText] = useState<string>();
+  const [register, setRegister] = useState(false);
   const [hasErrorText, setHasErrorText] = useState(true);
   const [hasErrorPassword, setHasErrorPassword] = useState(true);
 
@@ -73,6 +80,34 @@ const Login = ({navigation}: any) => {
     setPassword(value);
   };
 
+  const ValidateUser = async () => {
+    try {
+      const {data} = await axios.post('https://tamagochiapi-clpsampedro.b4a.run/login', {
+        email: text,
+        password: password,
+      });
+      Alert.alert('Sucesso', 'O login foi concluído com sucesso!')
+      // <Home/>;
+    } catch (error) {
+      Alert.alert('Erro', 'Usuário não encontrado! Deseja cadastrar novo usuário com os dados inseridos?', [
+        { text: 'Cadastrar', onPress: () => {UserRegistry()}}, { text: 'Sair'}
+      ]);
+    }
+  };
+
+  const UserRegistry = async () => {
+    try {
+      const {data} = await axios.post('https://tamagochiapi-clpsampedro.b4a.run/register', {
+        email: text,
+        password: password,
+      });
+      Alert.alert('Sucesso', data);
+      //<Home/>;
+    } catch (error) {
+      Alert.alert('Erro', String(error));
+    }
+  }
+
   return (
     <SafeAreaView style={styles.backColor}>
       <View style={styles.header}>
@@ -80,35 +115,35 @@ const Login = ({navigation}: any) => {
       </View>
 
       <View style={styles.loginContainer}>
-        <Text>E-mail</Text>
+        <Text style={styles.containerText}>E-mail</Text>
         <TextInput
           style={styles.input}
           value={text}
           onChangeText={onChangeInput}
         />
-        {hasErrorText ? <Text>Digite pelo menos 6 caracteres</Text> : null}
+        {/* {hasErrorText ? <Text>Digite pelo menos 6 caracteres</Text> : null} */}
 
-        <Text>Senha</Text>
+        <Text style={styles.containerText}>Senha</Text>
         <TextInput
           secureTextEntry={true}
           style={styles.input}
           value={password}
           onChangeText={onChangePassword}
         />
-        {hasErrorPassword ? <Text>Digite pelo menos 6 caracteres</Text> : null}
+        {/* {hasErrorPassword ? <Text>Digite pelo menos 6 caracteres</Text> : null} */}
 
         <Pressable
           style={styles.button} 
           onPress={() => {
             if(hasErrorText === true) {
-              console.warn('Preencha o campo E-mail!')
+              Alert.alert('Erro', 'Preencha o campo E-mail com ao menos 6 caracteres!')
               return
             }
             if(hasErrorPassword === true) {
-              console.warn('Preencha o campo Senha!')
+              Alert.alert('Erro', 'Preencha o campo Senha com ao menos 6 caracteres!')
               return 
             }
-            navigation.navigate('Home', {id: 1});
+            ValidateUser()
           }}>
           <Text style={styles.buttonText}>Entrar</Text>
         </Pressable>
