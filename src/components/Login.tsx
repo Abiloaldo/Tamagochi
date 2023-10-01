@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
-import {TextInput, SafeAreaView, StyleSheet, Text, Button, View, Alert, Pressable} from 'react-native';
-//import CadastroUsuario from './CadastroUsuario';
+import {TextInput, SafeAreaView, StyleSheet, Text, Button, View, Alert, Pressable, Image, ImageBackground} from 'react-native';
 import axios from 'axios';
 import Home from './Home';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const styles = StyleSheet.create({
   input: {
@@ -53,6 +53,10 @@ const styles = StyleSheet.create({
   containerText: {
     fontWeight: 'bold',
   },
+  image: {
+    width: '100%',
+    height: 700,
+  },
 });
 
 const Login = ({navigation}: any) => {
@@ -86,69 +90,59 @@ const Login = ({navigation}: any) => {
         email: text,
         password: password,
       });
-      Alert.alert('Sucesso', 'O login foi concluído com sucesso!')
-      // <Home/>;
+      //recuperar o token retornado e gravar em cache para uso na aplicação
+      try {
+        await AsyncStorage.setItem('token', data.token);
+        navigation.navigate('Início')
+      } catch (error) {
+        Alert.alert('Erro', 'Erro ao efetuar Login na aplicação! Tente Novamente')
+        return
+      }
     } catch (error) {
       Alert.alert('Erro', 'Usuário não encontrado! Deseja cadastrar novo usuário com os dados inseridos?', [
-        { text: 'Cadastrar', onPress: () => {UserRegistry()}}, { text: 'Sair'}
+        { text: 'Cadastrar', onPress: () => { navigation.navigate('Cadastro de Usuário')}}, { text: 'Cancelar'}
       ]);
     }
   };
 
-  const UserRegistry = async () => {
-    try {
-      const {data} = await axios.post('https://tamagochiapi-clpsampedro.b4a.run/register', {
-        email: text,
-        password: password,
-      });
-      Alert.alert('Sucesso', data);
-      //<Home/>;
-    } catch (error) {
-      Alert.alert('Erro', String(error));
-    }
-  }
-
   return (
     <SafeAreaView style={styles.backColor}>
-      <View style={styles.header}>
-        <Text style={styles.text}>Login</Text>
-      </View>
+      <ImageBackground source={require('../images/Tamagochi.jpg')} style={styles.image}>
+        <View style={styles.loginContainer}>
+          <Text style={styles.containerText}>E-mail</Text>
+          <TextInput
+            style={styles.input}
+            value={text}
+            onChangeText={onChangeInput}
+          />
 
-      <View style={styles.loginContainer}>
-        <Text style={styles.containerText}>E-mail</Text>
-        <TextInput
-          style={styles.input}
-          value={text}
-          onChangeText={onChangeInput}
-        />
-        {/* {hasErrorText ? <Text>Digite pelo menos 6 caracteres</Text> : null} */}
+          <Text style={styles.containerText}>Senha</Text>
+          <TextInput
+            secureTextEntry={true}
+            style={styles.input}
+            value={password}
+            onChangeText={onChangePassword}
+          />
 
-        <Text style={styles.containerText}>Senha</Text>
-        <TextInput
-          secureTextEntry={true}
-          style={styles.input}
-          value={password}
-          onChangeText={onChangePassword}
-        />
-        {/* {hasErrorPassword ? <Text>Digite pelo menos 6 caracteres</Text> : null} */}
-
-        <Pressable
-          style={styles.button} 
-          onPress={() => {
-            if(hasErrorText === true) {
-              Alert.alert('Erro', 'Preencha o campo E-mail com ao menos 6 caracteres!')
-              return
-            }
-            if(hasErrorPassword === true) {
-              Alert.alert('Erro', 'Preencha o campo Senha com ao menos 6 caracteres!')
-              return 
-            }
-            ValidateUser()
-          }}>
-          <Text style={styles.buttonText}>Entrar</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+          <Pressable
+            style={styles.button} 
+            onPress={() => {
+              if(hasErrorText === true) {
+                Alert.alert('Erro', 'Preencha o campo E-mail com ao menos 6 caracteres!')
+                return
+              }
+              if(hasErrorPassword === true) {
+                Alert.alert('Erro', 'Preencha o campo Senha com ao menos 6 caracteres!')
+                return 
+              }
+              ValidateUser()
+            }}>
+            <Text style={styles.buttonText}>Entrar</Text>
+          </Pressable>
+          <Text style={{padding:5,fontWeight: 'bold', textDecorationLine:'underline'}}  onPress={() => {navigation.navigate('Cadastro de Usuário')} }>É novo por aqui? Cadastre-se agora!</Text>
+        </View>
+        </ImageBackground>
+      </SafeAreaView>
   );
 };
 
