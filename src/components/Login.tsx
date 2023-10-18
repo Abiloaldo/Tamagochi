@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
     
   },
   button: {
-    height: 50,
+    height: 40,
     width: 300,
     margin: 5,
     borderWidth: 1,
@@ -37,10 +37,6 @@ const styles = StyleSheet.create({
     color: '#ffff',
     justifyContent: 'center',
     textAlign: 'center'
-  },
-  backColor: {
-    backgroundColor: '#ff471a',
-    paddingBottom: 500,
   },
   loginContainer: {
     backgroundColor: '#d9d9d9',
@@ -93,6 +89,8 @@ const Login = ({navigation}: any) => {
       //recuperar o token retornado e gravar em cache para uso na aplicação
       try {
         await AsyncStorage.setItem('token', data.token);
+        setText("")
+        setPassword("")
         navigation.navigate('Início')
       } catch (error) {
         Alert.alert('Erro', 'Erro ao efetuar Login na aplicação! Tente Novamente')
@@ -106,7 +104,7 @@ const Login = ({navigation}: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.backColor}>
+    <SafeAreaView>
       <ImageBackground source={require('../images/Tamagochi.jpg')} style={styles.image}>
         <View style={styles.loginContainer}>
           <Text style={styles.containerText}>E-mail</Text>

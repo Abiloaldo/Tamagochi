@@ -32,7 +32,7 @@ import Home from './src/components/Home';
 import Login from './src/components/Login';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
+import PetRegistry from './src/components/PetRegistry';
 
 const App = () => {
   const Stack = createNativeStackNavigator();
@@ -42,6 +42,7 @@ const App = () => {
         <Stack.Screen name='Login' component={Login} />
         <Stack.Screen name='Cadastro de Usuário' component={UserRegistry}/>
         <Stack.Screen name='Início' component={Home} />
+        <Stack.Screen name='Cadastro de Pet' component={PetRegistry} />
       </Stack.Navigator>
     </NavigationContainer>
   );
