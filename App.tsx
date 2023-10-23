@@ -33,9 +33,15 @@ import Login from './src/components/Login';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PetRegistry from './src/components/PetRegistry';
-
+import PetEdition from './src/components/PetEdition';
 const App = () => {
+
+  type InputProps = {
+    petId: Number
+  }
   const Stack = createNativeStackNavigator();
+  const StackEdition = createNativeStackNavigator<InputProps>();
+  
   return (
     <NavigationContainer>
       <Stack.Navigator>
@@ -43,6 +49,7 @@ const App = () => {
         <Stack.Screen name='Cadastro de Usuário' component={UserRegistry}/>
         <Stack.Screen name='Início' component={Home} />
         <Stack.Screen name='Cadastro de Pet' component={PetRegistry} />
+        <StackEdition.Screen name='Edição de Pet' component={PetEdition}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

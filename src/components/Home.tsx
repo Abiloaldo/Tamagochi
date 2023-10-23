@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, SafeAreaView, ActivityIndicator, FlatList, Text, Image, StyleSheet, Pressable, ImageBackground, Alert } from "react-native";
+import { View, SafeAreaView, ActivityIndicator, FlatList, Text, Image, StyleSheet, Pressable, ImageBackground, Alert, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
 import { useCallback } from "react";
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 const styles = StyleSheet.create({
     background: {
@@ -78,15 +79,22 @@ const styles = StyleSheet.create({
         padding: 3,
         borderWidth: 1,
         borderRadius: 4,
-        backgroundColor: '#00b300'
+        backgroundColor: '#3242a8'
     },
     deleteButton: {
-
+        height: 35,
+        width: 70,
+        margin: 5,
+        padding: 3,
+        borderWidth: 1,
+        borderRadius: 4,
+        backgroundColor: '#A12'
     }
 });
 
 type ListItemProps = {
     pet: {
+        id: Number,
         name: String,
         life: Number,
         createdAt: Date,
@@ -98,70 +106,75 @@ type ListRowProps = {
     value: any,
 }
 
-const ListRow = ({id , value}: ListRowProps) => {
-    return(
-        <View style={styles.listRow}>
-            <Text style={styles.listRowId}>{id}</Text>
-            <Text>{value}</Text>
-        </View>
-    );
-};
-
-const ListItem = ({pet}: ListItemProps) => {
-
-    return(
-        <View style={styles.listItem}>
-            <View style={styles.rowContainer}>
-                <ListRow  id={"Nome:"} value={pet.name}/>
-                <ListRow  id={"Pontos de Vida:"} value={pet.life}/>
-                <ListRow  id={"Idade:"} value={pet.createdAt}/>
-                <View style={{rowGap: 5, flexDirection: 'row', width: '100%', alignItems: 'center'}}>
-                    <Pressable
-                        style={styles.editButton} 
-                        onPress={() => {editPet()} }>
-                        <Text style={{fontSize:20, fontWeight:'bold'}}>Editar</Text>         
-                    </Pressable>
-                    <Pressable
-                        style={styles.deleteButton} 
-                        onPress={() => {deletePet()} }>
-                        <Text style={styles.buttonText}>Excluir</Text>         
-                    </Pressable>
-                </View>
-            </View>
-        </View>
-    )
-}
-
-const editPet = () => {
-    return(<></>)
-}
-
-const deletePet = () => {
-    return(<></>)
-}
-
 const Home = ({navigation}: any) => {
     const [pets, setPets] = useState([])
     const [loading, setLoading] = useState(false)
 
     const getToken = async () => {
-      try {
-        let userToken = await AsyncStorage.getItem('token') || 'none'
-       return userToken
-      } catch (error) {
-        console.log(error)
-        Alert.alert("Erro","safgs")
-      }  
+        try {
+          let userToken = await AsyncStorage.getItem('token') || 'none'
+         return userToken
+        } catch (error) {
+          console.log(error)
+          Alert.alert("Erro","Erro ao obter token de autenticação!")
+        }  
     };
+
+    const ListRow = ({id , value}: ListRowProps) => {
+        return(
+            <View style={styles.listRow}>
+                <Text style={styles.listRowId}>{id}</Text>
+                <Text>{value}</Text>
+            </View>
+        );
+    };
+    
+    const ListItem = ({pet}: ListItemProps) => {
+    
+        return(
+            <View style={styles.listItem}>
+                <View style={styles.rowContainer}>
+                    <ListRow  id={"Nome:"} value={pet.name}/>
+                    <ListRow  id={"Pontos de Vida:"} value={pet.life}/>
+                    <ListRow  id={"Data de Nascimento:"} value={pet.createdAt}/>
+                    <View style={{rowGap: 5, flexDirection: 'row', width: '100%', alignItems: 'center'}}>
+                        <Pressable
+                            style={styles.editButton} 
+                            onPress={() => {navigation.navigate('Edição de Pet', {petId: pet.id})} }>
+                            <Text style={{fontSize:20, fontWeight:'bold'}}>Editar</Text>         
+                        </Pressable>
+                        <Pressable
+                            style={styles.deleteButton} 
+                            onPress={() => {Alert.alert('Alerta', 'Deseja realmente excluir o Pet selecionado?', [
+                                { text: 'Excluir', onPress: () => {deletePet(pet.id)}}, { text: 'Cancelar'}
+                            ]);} }>
+                            <Text style={{fontSize:20, fontWeight:'bold'}}>Excluir</Text>         
+                        </Pressable>
+                    </View>
+                </View>
+            </View>
+        )
+    }
+    
+    const deletePet = async (petId : Number) => {
+        try {
+            const token = await getToken()
+            await axios.delete('https://tamagochiapi-clpsampedro.b4a.run/pet/' + petId, {headers: {'x-access-token': token}})
+            setLoading(true)
+        } catch (error) {
+            Alert.alert('Erro', 'A exclusão não foi realizada!')
+        } finally {
+            getPetsData()
+            setLoading(false)
+        }
+    }
 
     //useCallBack considera os dados armazenados em cache e executa apenas quando alterado  
     const getPetsData = useCallback(async () => {
         try {
-           const token = await getToken()
-            console.log(token + " HOMEnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
+            const token = await getToken()
             setLoading(true)
             const {data} = await axios.get('https://tamagochiapi-clpsampedro.b4a.run/pets?',{headers: {'x-access-token': token}})
-            console.log(data)
             setPets(data.pets)
         } catch (error) {
             console.log(error)
@@ -171,9 +184,14 @@ const Home = ({navigation}: any) => {
     }, [])
 
     //chamar na montagem do componente
-    useEffect(() => {
-        getPetsData()
-    }, [])
+    // useEffect(() => {
+    //     getPetsData()
+    // }, [])
+
+    //chamar toda vez que a tela ganhar foco
+    useFocusEffect(
+        React.useCallback(() => {getPetsData()}, [])
+    )
 
     const logout = async () => {
         try {
